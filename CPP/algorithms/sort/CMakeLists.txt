@@ -1,5 +1,5 @@
-set(SRCS sort.cc)
+#set(SRCS sort.h)
 
-add_library(sort ${SRCS})
+#add_library(sort ${SRCS})
 
 add_subdirectory(tests)
