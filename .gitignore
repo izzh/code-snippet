@@ -37,3 +37,6 @@ CMakeFiles/
 *.cmake
 Makefile
 *CMakeCache.txt
+
+# config
+*.json
