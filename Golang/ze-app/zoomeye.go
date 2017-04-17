@@ -51,4 +51,24 @@ func main() {
 	}
 
 	fmt.Printf("access_token:%s\n", accessToken["access_token"])
+
+    // search
+    client := &http.Client{}
+    req, err := http.NewRequest("GET", "https://api.zoomeye.org/host/search?query=port:23&city:nanjing&page=1&facet=app,os", nil)
+    if err != nil {
+        log.Printf("http NewRequst fail!")
+        return
+    }
+    req.Header.Add("Authorization", "JWT "+accessToken["access_token"])
+    resp, err := client.Do(req)
+    if err != nil {
+        log.Printf("client Do fail!")
+        return
+    }
+    defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        log.Printf("read body fail!")
+    }
+    fmt.Printf("%s\n", body)
 }
