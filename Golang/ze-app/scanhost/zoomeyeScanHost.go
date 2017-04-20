@@ -1,4 +1,4 @@
-package main
+package scanhost
 
 import (
 	"bytes"
@@ -10,7 +10,10 @@ import (
 	"net/http"
 )
 
-const accountFile = "account.json"
+const (
+    accountFile = "account.json"
+    configFile = "config.json"
+)
 
 func readJsonFile(file string) ([]byte, error) {
 	b, err := ioutil.ReadFile(file)
@@ -43,7 +46,7 @@ func getAccessToken(m map[string]string) (err error) {
 	return
 }
 
-func main() {
+func GetHostList(message chan string) {
 	accessToken := make(map[string]string)
 	err := getAccessToken(accessToken)
 	if err != nil {
@@ -92,4 +95,5 @@ func main() {
 
 		fmt.Printf("isp: %-64v ip: %-16v port: %-5v timestamp: %-20v\n", isp, ip, port, timestamp)
 	}
+    message <- "get host list over!"
 }
