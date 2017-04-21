@@ -11,8 +11,8 @@ import (
 )
 
 const (
-    accountFile = "account.json"
-    configFile = "config.json"
+    accountFile = "conf/account.json"
+    configFile = "conf/config.json"
 )
 
 func readJsonFile(file string) ([]byte, error) {
@@ -58,7 +58,7 @@ func GetHostList(message chan string) {
 
 	// search
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.zoomeye.org/host/search?query=port:23&page=1&facet=app,os", nil)
+	req, err := http.NewRequest("GET", "https://api.zoomeye.org/host/search?query=port:23&page=8000&facet=app,os", nil)
 	if err != nil {
 		log.Printf("http NewRequst fail!")
 		return
