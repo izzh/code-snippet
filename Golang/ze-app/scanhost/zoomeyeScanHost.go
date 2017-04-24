@@ -11,8 +11,10 @@ import (
 )
 
 const (
-    accountFile = "conf/account.json"
-    configFile = "conf/config.json"
+	accountFile = "conf/account.json"
+	configFile  = "conf/config.json"
+    login_api = "https://api.zoomeye.org/user/login"
+    search_api = "https://api.zoomeye.org/host/search?query=port:23&page=%d&facet=app,os"
 )
 
 func readJsonFile(file string) ([]byte, error) {
@@ -27,7 +29,7 @@ func readJsonFile(file string) ([]byte, error) {
 func getAccessToken(m map[string]string) (err error) {
 	accountInfo, _ := readJsonFile(accountFile)
 	body := bytes.NewBuffer(accountInfo)
-	resp, err := http.Post("https://api.zoomeye.org/user/login", "application/json;charset=utf-8", body)
+	resp, err := http.Post(login_api, "application/json;charset=utf-8", body)
 	if err != nil {
 		log.Println("http post fail!")
 	}
@@ -54,46 +56,56 @@ func GetHostList(message chan string) {
 		return
 	}
 
-	fmt.Printf("access_token:%s\n", accessToken["access_token"])
+	// fmt.Printf("access_token:%s\n", accessToken["access_token"])
 
 	// search
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.zoomeye.org/host/search?query=port:23&page=8000&facet=app,os", nil)
-	if err != nil {
-		log.Printf("http NewRequst fail!")
-		return
-	}
-	req.Header.Add("Authorization", "JWT "+accessToken["access_token"])
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("client Do fail!")
-		return
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("read body fail!")
-	}
-	// fmt.Printf("%s\n", body)
+	for i := 1; i <= 1000; i++ {
+        url := fmt.Sprintf(search_api, i)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			log.Printf("http NewRequst fail!")
+			return
+		}
+		req.Header.Add("Authorization", "JWT "+accessToken["access_token"])
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("client Do fail!")
+			return
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("read body fail!")
+		}
+		// fmt.Printf("%s\n", body)
 
-	// parse
-	js, err := simplejson.NewJson(body)
-	if err != nil || js == nil {
-		log.Println("parse search result fail!")
-	}
-	matchin, err := js.Get("matches").Array()
-	if err != nil {
-		log.Printf("search result return: %s\n", body)
-	}
-	// fmt.Println(matchin)
-	for _, value := range matchin {
-		node, _ := value.(map[string]interface{})
-		isp := node["geoinfo"].(map[string]interface{})["isp"]
-		ip := node["ip"]
-		port := node["portinfo"].(map[string]interface{})["port"]
-		timestamp := node["timestamp"]
+		// parse
+		js, err := simplejson.NewJson(body)
+		if err != nil || js == nil {
+			log.Println("parse search result fail!")
+		}
+		matchin, err := js.Get("matches").Array()
+		if err != nil {
+			log.Printf("search result return: %s\n", body)
+		}
+		// fmt.Println(matchin)
+        cnt := 0
+		for _, value := range matchin {
+            cnt++
+			node, _ := value.(map[string]interface{})
+			// isp := node["geoinfo"].(map[string]interface{})["isp"]
+            ip := node["ip"]
+            service := node["portinfo"].(map[string]interface{})["service"]
+            port := node["portinfo"].(map[string]interface{})["port"]
+            app := node["portinfo"].(map[string]interface{})["app"]
+            device := node["portinfo"].(map[string]interface{})["device"]
+            os := node["portinfo"].(map[string]interface{})["os"]
+            timestamp := node["timestamp"]
 
-		fmt.Printf("isp: %-64v ip: %-16v port: %-5v timestamp: %-20v\n", isp, ip, port, timestamp)
+			fmt.Printf("%-5v %-16v %-16v %-5v %-48v %-20v %-16v %-20v\n",
+				(i-1)*10 + cnt, ip, service, port, app, device, os, timestamp)
+		}
 	}
-    message <- "get host list over!"
+	message <- "get host list over!"
 }
