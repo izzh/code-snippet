@@ -1,16 +1,16 @@
 package main
 
 import (
-    "fmt"
-    "./scanhost"
+	"./scanhost"
+	"fmt"
 )
 
 func main() {
-    msg := make(chan string)
-    fmt.Println("start get scanhost...")
+	msg := make(chan string)
+	fmt.Println("start get scanhost...")
 
-    go scanhost.GetHostList(msg)
+	go scanhost.GetHostList(msg)
 
-    content := <- msg
-    fmt.Println(content)
+	content := <-msg
+	fmt.Println(content)
 }
