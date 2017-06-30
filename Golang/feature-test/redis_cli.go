@@ -12,14 +12,22 @@ type JData struct {
 
 func main() {
     option := redis.DialPassword("admin@yxzc!@")
-    c, err := redis.Dial("tcp", "localhost:6379", option)
+    c, err := redis.Dial("tcp", "192.168.40.146:6379", option)
     if err != nil {
         fmt.Printf("conn redis fail!\n")
         return
     }
 
     defer c.Close()
-    c.Do("PUBLISH", "CCAttack", "hello")
+    // c.Do("PUBLISH", "CCAttack", "hello")
+    result, _ := c.Do("CLIENT", "LIST")
+    fmt.Printf("clients: %s\n", result)
+    switch v := result.(type) {
+    case string:
+        fmt.Printf("clients: %v, %v\n", v, result)
+    case error:
+        return
+    }
 
     psc := redis.PubSubConn{Conn : c}
     psc.Subscribe("foo")
